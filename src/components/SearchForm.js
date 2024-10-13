@@ -1,7 +1,12 @@
-import React, { useState } from 'react';
-import Autosuggest from 'react-autosuggest';
-import 'bootstrap/dist/css/bootstrap.min.css';
+import React, { useState, useEffect, useCallback } from "react";
+import Autosuggest from "react-autosuggest";
+import "bootstrap/dist/css/bootstrap.min.css";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import { startOfWeek, differenceInHours } from 'date-fns';
+import "./SearchForm.css"; // Import the CSS file for styling
 
+import moment from "moment"; // Import moment for date manipulation
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
 const API_URL = `${API_BASE_URL}/countries/autosuggest`;
@@ -11,32 +16,56 @@ const ORIGINS_API_URL = `${API_BASE_URL}/airports/autosuggest`;
 //const ORIGINS_API_URL = 'https://ec2-13-51-234-10.eu-north-1.compute.amazonaws.com/airports/autosuggest';
 
 function SearchForm({ onSearch }) {
-  const [origins, setOrigins] = useState('');
-  const [destinations, setDestinations] = useState([]); // To store the selected destination codes
-  const [destinationInput, setDestinationInput] = useState(''); // User input for destination
-  const [dateFrom, setDateFrom] = useState('');
-  const [dateTo, setDateTo] = useState('');
-  const [suggestions, setSuggestions] = useState([]); // List of suggestions from API
-  const [originIatas, setOriginIatas] = useState([]); // To store the selected origin iata codes
-  const [originInput, setOriginInput] = useState(''); // User input for origin
-  const [originSuggestions, setOriginSuggestions] = useState([]); // Suggestions for origins
-  const [isReturnFlight, setIsReturnFlight] = useState(false); // State for toggle
-  const [nights, setNights] = useState(0); // State for nights input
+  const [origins, setOrigins] = useState("");
+  const [destinations, setDestinations] = useState([]);
+  const [destinationInput, setDestinationInput] = useState("");
+  const [dateFrom, setDateFrom] = useState(new Date()); // Set default to current date
+  const [dateTo, setDateTo] =useState(new Date());
+  const [suggestions, setSuggestions] = useState([]);
+  const [originIatas, setOriginIatas] = useState([]);
+  const [originInput, setOriginInput] = useState("");
+  const [originSuggestions, setOriginSuggestions] = useState([]);
+  const [isReturnFlight, setIsReturnFlight] = useState(false);
+  const [nights, setNights] = useState(0);
 
+  // Debounce function to delay API calls
+  const debounce = (func, delay) => {
+    let timeoutId;
+    return (...args) => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        func.apply(null, args);
+      }, delay);  
 
-    // Fetch origin suggestions from API
-const fetchOriginSuggestions = async (query) => {
-  try {
-    const response = await fetch(`${ORIGINS_API_URL}?airport_name=${query}`);
-    if (!response.ok) {
-      throw new Error('Failed to fetch origin suggestions');
-    }
-    const data = await response.json();
-    setOriginSuggestions(data);
-  } catch (error) {
-    console.error('Error fetching origin suggestions:', error);
-  }
-};
+    };
+  };
+
+  // Fetch origin suggestions from API (using useCallback and debounce)
+  const fetchOriginSuggestions = useCallback(
+    debounce(async (query) => {
+      try {
+        const response = await fetch(`${ORIGINS_API_URL}?airport_name=${query}`);
+        if (!response.ok) {
+          throw new Error("Failed to fetch origin suggestions");
+        }
+        const data = await response.json();
+        setOriginSuggestions(data);
+      } catch (error) {
+        console.error("Error fetching origin suggestions:", error);
+      }
+    }, 300), // Debounce with a 300ms delay
+    []
+  );
+
+  // Function to remove an origin
+  const handleRemoveOrigin = (iata) => {
+    setOriginIatas(originIatas.filter((origin) => origin !== iata));
+  };
+
+  // Function to remove a destination
+  const handleRemoveDestination = (destination) => {
+    setDestinations(destinations.filter((dest) => dest !== destination));
+  };
 
 const handleOriginInputChange = (event, { newValue }) => {
     setOriginInput(newValue);
@@ -71,19 +100,22 @@ const handleOriginSuggestionsFetchRequested = ({ value }) => {
     }
   };
 
-  // Fetch suggestions from API
-  const fetchSuggestions = async (query) => {
-    try {
-      const response = await fetch(`${API_URL}?country_name=${query}`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch suggestions');
+  // Fetch suggestions from API (using useCallback and debounce)
+  const fetchSuggestions = useCallback(
+    debounce(async (query) => {
+      try {
+        const response = await fetch(`${API_URL}?country_name=${query}`);
+        if (!response.ok) {
+          throw new Error("Failed to fetch suggestions");
+        }
+        const data = await response.json();
+        setSuggestions(data);
+      } catch (error) {
+        console.error("Error fetching suggestions:", error);
       }
-      const data = await response.json();
-      setSuggestions(data); // API returns an array of objects like {code, name}
-    } catch (error) {
-      console.error('Error fetching suggestions:', error);
-    }
-  };
+    }, 300), // Debounce with a 300ms delay
+    []
+  );
 
   const handleSuggestionsFetchRequested = ({ value }) => {
     if (value.length > 3) {
@@ -110,12 +142,16 @@ const handleOriginSuggestionsFetchRequested = ({ value }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    const formattedDateFrom = moment(dateFrom).format("YYYY-MM-DD");
+    const formattedDateTo = moment(dateTo).format("YYYY-MM-DD");
+
     onSearch({
       origins: originIatas,
       destinations,
-      dateFrom,
-      dateTo,
-      nights: isReturnFlight ? nights : 0, // Send nights only if return flight
+      dateFrom: formattedDateFrom, // Send formatted date
+      dateTo: formattedDateTo, // Send formatted date
+      nights: isReturnFlight ? nights : 0,
     });
   };
 
@@ -131,77 +167,100 @@ const handleOriginSuggestionsFetchRequested = ({ value }) => {
 
   return (
     <form onSubmit={handleSubmit} className="p-4 bg-light rounded">
-      {/* Autosuggest for Origins */}
-      <div className="mb-3">
-              <label htmlFor="origins" className="form-label">Origins:</label>
-              <Autosuggest
-                suggestions={originSuggestions}
-                onSuggestionsFetchRequested={handleOriginSuggestionsFetchRequested}
-                onSuggestionsClearRequested={handleOriginSuggestionsClearRequested}
-                getSuggestionValue={(suggestion) => suggestion.iata} // Use 'iata' for sending in the API call
-                renderSuggestion={renderSuggestion} // Use the updated renderSuggestion
-                inputProps={{
-                  placeholder: 'Type an origin',
-                  value: originInput,
-                  onChange: handleOriginInputChange,
-                }}
-                onSuggestionSelected={handleAddOrigin}
-              />
-        <div className="mt-2">
-          {/* Display selected origin iata codes */}
-          {originIatas.map((origin, index) => (
-            <span key={index} className="badge bg-primary me-2">
-              {origin} {/* Showing iata */}
-            </span>
-          ))}
-        </div>
-      </div>
+   {/* Autosuggest for Origins */}
+         <div className="mb-3">
+           <label htmlFor="origins" className="form-label">
+             Origins:
+           </label>
+           <Autosuggest
+             suggestions={originSuggestions}
+             onSuggestionsFetchRequested={handleOriginSuggestionsFetchRequested}
+             onSuggestionsClearRequested={handleOriginSuggestionsClearRequested}
+             getSuggestionValue={(suggestion) => suggestion.iata}
+             renderSuggestion={renderSuggestion}
+             inputProps={{
+               placeholder: "Type an origin",
+               value: originInput,
+               onChange: handleOriginInputChange,
+             }}
+             onSuggestionSelected={handleAddOrigin}
+           />
+           {/* Display selected origins with remove option */}
+           <div className="selected-origins">
+             {originIatas.map((origin) => (
+               <span key={origin} className="origin-tag">
+                 {origin}{" "}
+                 <button
+                   type="button"
+                   className="btn-close btn-close-small"
+                   onClick={() => handleRemoveOrigin(origin)}
+                 ></button>
+               </span>
+             ))}
+           </div>
+         </div>
 
-      {/* Autosuggest for Destinations */}
+
+{/* Autosuggest for Destinations */}
       <div className="mb-3">
-        <label htmlFor="destinations" className="form-label">Destinations:</label>
+        <label htmlFor="destinations" className="form-label">
+          Destinations:
+        </label>
         <Autosuggest
           suggestions={suggestions}
           onSuggestionsFetchRequested={handleSuggestionsFetchRequested}
-          onSuggestionsClearRequested={handleSuggestionsClearRequested}
-          getSuggestionValue={(suggestion) => suggestion.name} // Should be 'name' to match the API response
-          renderSuggestion={renderDestinationSuggestion}
+          onSuggestionsClearRequested={handleSuggestionsClearRequested}  
+
+          getSuggestionValue={(suggestion) => suggestion.name}
+          renderSuggestion={renderDestinationSuggestion}  
+
           inputProps={{
-            placeholder: 'Type a destination',
+            placeholder: "Type a destination",
             value: destinationInput,
             onChange: handleDestinationChange,
           }}
           onSuggestionSelected={handleAddDestination}
         />
-        <div className="mt-2">
-          {/* Display selected destination codes */}
-          {destinations.map((dest, index) => (
-            <span key={index} className="badge bg-primary me-2">
-              {dest} {/* Showing code */}
+        {/* Display selected destinations with remove option */}
+        <div className="selected-destinations">
+          {destinations.map((destination) => (
+            <span key={destination} className="destination-tag">
+              {destination}{" "}
+              <button
+                type="button"
+                className="btn-close btn-close-small"
+                onClick={() => handleRemoveDestination(destination)}
+              ></button>
             </span>
           ))}
         </div>
       </div>
-
-      {/* Date inputs */}
+      {/* Date Picker for Date From */}
       <div className="mb-3">
-        <label htmlFor="departureDate" className="form-label">Date From:</label>
-        <input
-          type="date"
+        <label htmlFor="departureDate" className="form-label">
+          Date From:
+        </label>
+        <DatePicker
           id="departureDate"
-          value={dateFrom}
-          onChange={(e) => setDateFrom(e.target.value)}
+          selected={dateFrom}
+          onChange={(date) => setDateFrom(date)}
           className="form-control"
+          dateFormat="yyyy-MM-dd" // Set the desired date format
+          minDate={new Date()} // Set the minimum selectable date to today
         />
       </div>
+      {/* Date Picker for Date To */}
       <div className="mb-3">
-        <label htmlFor="returnDate" className="form-label">Date To:</label>
-        <input
-          type="date"
+        <label htmlFor="returnDate" className="form-label">
+          Date To:
+        </label>
+        <DatePicker
           id="returnDate"
-          value={dateTo}
-          onChange={(e) => setDateTo(e.target.value)}
+          selected={dateTo}
+          onChange={(date) => setDateTo(date)}
           className="form-control"
+          dateFormat="yyyy-MM-dd" // Set the desired date format
+          minDate={dateFrom} // Set the minimum selectable date to dateFrom
         />
       </div>
 
