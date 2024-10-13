@@ -2,9 +2,13 @@ import React, { useState } from 'react';
 import Autosuggest from 'react-autosuggest';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
+
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+const API_URL = `${API_BASE_URL}/countries/autosuggest`;
+const ORIGINS_API_URL = `${API_BASE_URL}/airports/autosuggest`;
 // Example API endpoint (replace with your actual endpoint)
-const API_URL = 'https://ec2-13-51-234-10.eu-north-1.compute.amazonaws.com/countries/autosuggest';
-const ORIGINS_API_URL = 'https://ec2-13-51-234-10.eu-north-1.compute.amazonaws.com/airports/autosuggest';
+//const API_URL = 'https://ec2-13-51-234-10.eu-north-1.compute.amazonaws.com/countries/autosuggest';
+//const ORIGINS_API_URL = 'https://ec2-13-51-234-10.eu-north-1.compute.amazonaws.com/airports/autosuggest';
 
 function SearchForm({ onSearch }) {
   const [origins, setOrigins] = useState('');
@@ -16,6 +20,8 @@ function SearchForm({ onSearch }) {
   const [originIatas, setOriginIatas] = useState([]); // To store the selected origin iata codes
   const [originInput, setOriginInput] = useState(''); // User input for origin
   const [originSuggestions, setOriginSuggestions] = useState([]); // Suggestions for origins
+  const [isReturnFlight, setIsReturnFlight] = useState(false); // State for toggle
+  const [nights, setNights] = useState(0); // State for nights input
 
 
     // Fetch origin suggestions from API
@@ -105,36 +111,42 @@ const handleOriginSuggestionsFetchRequested = ({ value }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     onSearch({
-      origins: originIatas, // Send the array of iata codes
-      destinations, // This array now contains destination codes
+      origins: originIatas,
+      destinations,
       dateFrom,
-      dateTo
+      dateTo,
+      nights: isReturnFlight ? nights : 0, // Send nights only if return flight
     });
   };
 
   // Define how each suggestion should be displayed (show the 'name')
   const renderSuggestion = (suggestion) => (
-    <div>{suggestion.name}</div>
+    <div>{suggestion.dropdown}</div> // Display the 'dropdown' field
   );
+
+    // Define how each suggestion should be displayed (show the 'name')
+    const renderDestinationSuggestion = (suggestion) => (
+      <div>{suggestion.name}</div> // Display the 'name' field
+    );
 
   return (
     <form onSubmit={handleSubmit} className="p-4 bg-light rounded">
       {/* Autosuggest for Origins */}
       <div className="mb-3">
-        <label htmlFor="origins" className="form-label">Origins:</label>
-        <Autosuggest
-          suggestions={originSuggestions}
-          onSuggestionsFetchRequested={handleOriginSuggestionsFetchRequested}
-          onSuggestionsClearRequested={handleOriginSuggestionsClearRequested}
-          getSuggestionValue={(suggestion) => suggestion.name} // Use 'name' for input value
-          renderSuggestion={renderSuggestion}
-          inputProps={{
-            placeholder: 'Type an origin',
-            value: originInput,
-            onChange: handleOriginInputChange,
-          }}
-          onSuggestionSelected={handleAddOrigin} // Add 'iata' to the originIatas array
-        />
+              <label htmlFor="origins" className="form-label">Origins:</label>
+              <Autosuggest
+                suggestions={originSuggestions}
+                onSuggestionsFetchRequested={handleOriginSuggestionsFetchRequested}
+                onSuggestionsClearRequested={handleOriginSuggestionsClearRequested}
+                getSuggestionValue={(suggestion) => suggestion.iata} // Use 'iata' for sending in the API call
+                renderSuggestion={renderSuggestion} // Use the updated renderSuggestion
+                inputProps={{
+                  placeholder: 'Type an origin',
+                  value: originInput,
+                  onChange: handleOriginInputChange,
+                }}
+                onSuggestionSelected={handleAddOrigin}
+              />
         <div className="mt-2">
           {/* Display selected origin iata codes */}
           {originIatas.map((origin, index) => (
@@ -152,14 +164,14 @@ const handleOriginSuggestionsFetchRequested = ({ value }) => {
           suggestions={suggestions}
           onSuggestionsFetchRequested={handleSuggestionsFetchRequested}
           onSuggestionsClearRequested={handleSuggestionsClearRequested}
-          getSuggestionValue={(suggestion) => suggestion.name} // Display 'name' in the input
-          renderSuggestion={renderSuggestion}
+          getSuggestionValue={(suggestion) => suggestion.name} // Should be 'name' to match the API response
+          renderSuggestion={renderDestinationSuggestion}
           inputProps={{
             placeholder: 'Type a destination',
             value: destinationInput,
             onChange: handleDestinationChange,
           }}
-          onSuggestionSelected={handleAddDestination} // Add 'code' to the destinations array
+          onSuggestionSelected={handleAddDestination}
         />
         <div className="mt-2">
           {/* Display selected destination codes */}
@@ -173,7 +185,7 @@ const handleOriginSuggestionsFetchRequested = ({ value }) => {
 
       {/* Date inputs */}
       <div className="mb-3">
-        <label htmlFor="departureDate" className="form-label">Departure Date:</label>
+        <label htmlFor="departureDate" className="form-label">Date From:</label>
         <input
           type="date"
           id="departureDate"
@@ -183,7 +195,7 @@ const handleOriginSuggestionsFetchRequested = ({ value }) => {
         />
       </div>
       <div className="mb-3">
-        <label htmlFor="returnDate" className="form-label">Return Date:</label>
+        <label htmlFor="returnDate" className="form-label">Date To:</label>
         <input
           type="date"
           id="returnDate"
@@ -192,6 +204,38 @@ const handleOriginSuggestionsFetchRequested = ({ value }) => {
           className="form-control"
         />
       </div>
+
+      {/* Toggle button */}
+      <div className="mb-3 form-check form-switch">
+        <input
+          className="form-check-input"
+          type="checkbox"
+          id="returnFlightToggle"
+          checked={isReturnFlight}
+          onChange={(e) => setIsReturnFlight(e.target.checked)}
+        />
+        <label className="form-check-label" htmlFor="returnFlightToggle">
+          Return Flight
+        </label>
+      </div>
+
+      {/* Conditionally render Date To and Nights inputs */}
+      {isReturnFlight && (
+        <>
+          <div className="mb-3">
+            <label htmlFor="nights" className="form-label">
+              Nights:
+            </label>
+            <input
+              type="number"
+              id="nights"
+              value={nights}
+              onChange={(e) => setNights(parseInt(e.target.value, 10) || 0)} // Ensure integer value
+              className="form-control"
+            />
+          </div>
+        </>
+      )}
 
       <button type="submit" className="btn btn-primary">Search Flights</button>
     </form>
