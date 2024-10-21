@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import Autosuggest from "react-autosuggest";
 import "bootstrap/dist/css/bootstrap.min.css";
 import DatePicker from "react-datepicker";
@@ -27,6 +27,24 @@ function SearchForm({ onSearch }) {
   const [originSuggestions, setOriginSuggestions] = useState([]);
   const [isReturnFlight, setIsReturnFlight] = useState(false);
   const [nights, setNights] = useState(0);
+  const originAutosuggestRef = useRef(null); // Ref for the origin Autosuggest
+  const destinationAutosuggestRef = useRef(null); // Ref for the destination Autosuggest
+
+
+  const handleOriginSuggestionsFetchRequested = ({ value }) => {
+    if (value.length > 3) {
+      fetchOriginSuggestions(value);
+      originAutosuggestRef.current.input.focus(); // Focus the input field
+    }
+  };
+
+  const handleSuggestionsFetchRequested = ({ value }) => {
+    if (value.length > 3) {
+      fetchSuggestions(value);
+      destinationAutosuggestRef.current.input.focus(); // Focus the input field
+    }
+  };
+
 
   // Debounce function to delay API calls
   const debounce = (func, delay) => {
@@ -50,6 +68,7 @@ function SearchForm({ onSearch }) {
         }
         const data = await response.json();
         setOriginSuggestions(data);
+        destinationAutosuggestRef.current.showSuggestions(); // Show the dropdown
       } catch (error) {
         console.error("Error fetching origin suggestions:", error);
       }
@@ -79,12 +98,6 @@ const handleAddOrigin = (event, { suggestion }) => {
     setOriginInput('');
   };
 
-const handleOriginSuggestionsFetchRequested = ({ value }) => {
-    if (value.length > 3) {
-      fetchOriginSuggestions(value);
-    }
-  };
-
   const handleOriginSuggestionsClearRequested = () => {
     setOriginSuggestions([]);
   };
@@ -110,6 +123,7 @@ const handleOriginSuggestionsFetchRequested = ({ value }) => {
         }
         const data = await response.json();
         setSuggestions(data);
+        destinationAutosuggestRef.current.showSuggestions(); // Show the dropdown
       } catch (error) {
         console.error("Error fetching suggestions:", error);
       }
@@ -117,11 +131,6 @@ const handleOriginSuggestionsFetchRequested = ({ value }) => {
     []
   );
 
-  const handleSuggestionsFetchRequested = ({ value }) => {
-    if (value.length > 3) {
-      fetchSuggestions(value);
-    }
-  };
 
   const handleSuggestionsClearRequested = () => {
     setSuggestions([]);
@@ -166,25 +175,48 @@ const handleOriginSuggestionsFetchRequested = ({ value }) => {
     );
 
   return (
-    <form onSubmit={handleSubmit} className="p-4 bg-light rounded">
-   {/* Autosuggest for Origins */}
-         <div className="mb-3">
-           <label htmlFor="origins" className="form-label">
-             Origins:
-           </label>
-           <Autosuggest
-             suggestions={originSuggestions}
-             onSuggestionsFetchRequested={handleOriginSuggestionsFetchRequested}
-             onSuggestionsClearRequested={handleOriginSuggestionsClearRequested}
-             getSuggestionValue={(suggestion) => suggestion.iata}
-             renderSuggestion={renderSuggestion}
-             inputProps={{
-               placeholder: "Type an origin",
-               value: originInput,
-               onChange: handleOriginInputChange,
-             }}
-             onSuggestionSelected={handleAddOrigin}
-           />
+  <form
+    onSubmit={handleSubmit}
+    onTouchStart={(e) => e.target.submit()}  // This will trigger form submission on touch devices
+    className="p-4 bg-light rounded"
+  >
+      {/* Autosuggest for Origins */}
+      <div className="mb-3">
+        <label htmlFor="origins" className="form-label">
+          Origins:
+        </label>
+        <div className="d-flex">
+          <Autosuggest
+            ref={originAutosuggestRef} // Add ref to the component
+            suggestions={originSuggestions}
+            onSuggestionsFetchRequested={handleOriginSuggestionsFetchRequested}
+            onSuggestionsClearRequested={handleOriginSuggestionsClearRequested}
+            getSuggestionValue={(suggestion) => suggestion.iata}
+            renderSuggestion={renderSuggestion}
+            inputProps={{
+              placeholder: "Type an origin",
+              value: originInput,
+              onChange: handleOriginInputChange,
+            }}
+            onSuggestionSelected={handleAddOrigin}
+          />
+//          <button
+//            type="button"
+//            className="btn btn-primary ms-2"
+//            onClick={(e) => {
+//              e.preventDefault(); // Prevent default click behavior
+//              fetchOriginSuggestions(originInput);
+//              originAutosuggestRef.current.input.focus();
+//            }}
+//            onTouchStart={(e) => {
+//              e.preventDefault(); // Handle touch as well
+//              fetchOriginSuggestions(originInput);
+//              originAutosuggestRef.current.input.focus();
+//            }}
+//          >
+//            Search
+//          </button>
+        </div>
            {/* Display selected origins with remove option */}
            <div className="selected-origins">
              {originIatas.map((origin) => (
@@ -201,26 +233,44 @@ const handleOriginSuggestionsFetchRequested = ({ value }) => {
          </div>
 
 
-{/* Autosuggest for Destinations */}
+      {/* Autosuggest for Destinations */}
       <div className="mb-3">
         <label htmlFor="destinations" className="form-label">
           Destinations:
         </label>
-        <Autosuggest
-          suggestions={suggestions}
-          onSuggestionsFetchRequested={handleSuggestionsFetchRequested}
-          onSuggestionsClearRequested={handleSuggestionsClearRequested}  
+        <div className="d-flex">
+          <Autosuggest
+            ref={destinationAutosuggestRef} // Add ref to the component
+            suggestions={suggestions}
+            onSuggestionsFetchRequested={handleSuggestionsFetchRequested}
+            onSuggestionsClearRequested={handleSuggestionsClearRequested}
+            getSuggestionValue={(suggestion) => suggestion.name}
+            renderSuggestion={renderDestinationSuggestion}
+            inputProps={{
+              placeholder: "Type a destination",
+              value: destinationInput,
+              onChange: handleDestinationChange,
+            }}
+            onSuggestionSelected={handleAddDestination}
+          />
+//          <button
+//            type="button"
+//            className="btn btn-primary ms-2"
+//            onClick={(e) => {
+//              e.preventDefault(); // Prevent default click behavior
+//              fetchSuggestions(destinationInput);
+//              destinationAutosuggestRef.current.input.focus();
+//            }}
+//            onTouchStart={(e) => {
+//              e.preventDefault(); // Handle touch as well
+//              fetchSuggestions(destinationInput);
+//              destinationAutosuggestRef.current.input.focus();
+//            }}
+//          >
+//            Search
+//          </button>
+      </div>
 
-          getSuggestionValue={(suggestion) => suggestion.name}
-          renderSuggestion={renderDestinationSuggestion}  
-
-          inputProps={{
-            placeholder: "Type a destination",
-            value: destinationInput,
-            onChange: handleDestinationChange,
-          }}
-          onSuggestionSelected={handleAddDestination}
-        />
         {/* Display selected destinations with remove option */}
         <div className="selected-destinations">
           {destinations.map((destination) => (
