@@ -12,7 +12,7 @@ docker save $image_name > $image_name.tar
 
 # Upload the tar file to the server using scp
 #scp -i /Users/singhas/p-projects/first-key-pair.pem $image_name.tar ubuntu@ec15-51-20-94-47.eu-north-1.compute.amazonaws.com:~
-scp -i "/Users/singhas/p-projects/first-key-pair.pem" $image_name.tar ubuntu@ec2-13-51-234-10.eu-north-1.compute.amazonaws.com:~
+scp -i "/Users/singhas/p-projects/first-key-pair.pem" $image_name.tar ubuntu@ec2-13-49-245-200.eu-north-1.compute.amazonaws.com:~
 
 # Clean up the tar file (optional)
 #rm $image_name.tar

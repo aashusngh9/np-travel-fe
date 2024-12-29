@@ -58,7 +58,11 @@ function FlightResults({ results }) {
                     </div>
                   </div>
                 </div>
-
+                 {result.link && (
+                        <a href={result.link} target="_blank" rel="noopener noreferrer" className="btn btn-link mt-2">
+                          Book Now
+                        </a>
+                      )}
                 {expandedItems[result.id] && (
                   <div className="mt-3">
                     <ul className="list-group list-group-flush">

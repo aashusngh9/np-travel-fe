@@ -25,6 +25,7 @@ function SearchForm({ onSearch }) {
   const [loading, setLoading] = useState(false); // Loading state
   const originAutosuggestRef = useRef(null); // Ref for the origin Autosuggest
   const destinationAutosuggestRef = useRef(null); // Ref for the destination Autosuggest
+const [maxStops, setMaxStops] = useState(0); // New state for max stops
 
   // Utility function to handle preventDefault and stopPropagation
   const preventEventPropagation = (e) => {
@@ -146,6 +147,7 @@ function SearchForm({ onSearch }) {
       dateFrom: formattedDateFrom,
       dateTo: formattedDateTo,
       nights: isReturnFlight ? nights : 0,
+      maxStops, // Include maxStops in the payload
     });
 
     setLoading(false);  // Stop loading once the search completes
@@ -250,6 +252,17 @@ function SearchForm({ onSearch }) {
         />
       </div>
 
+      <div className="mb-3">
+      <label htmlFor="maxStops" className="form-label">Max Stops:</label>
+      <input
+        type="number"
+        id="maxStops"
+        value={maxStops}
+        onChange={(e) => setMaxStops(parseInt(e.target.value, 10) || 3)}
+        className="form-control"
+        placeholder="Enter maximum stops"
+      />
+    </div>
       {/* Toggle for Return Flight */}
       <div className="mb-3 form-check form-switch">
         <input
