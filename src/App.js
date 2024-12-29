@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import SearchForm from './components/SearchForm';
 import FlightResults from './components/FlightResults';
 
-const API_BASE_URL = 'https://ec2-13-51-234-10.eu-north-1.compute.amazonaws.com';
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
 function App() {
   const [flightData, setFlightData] = useState([]);

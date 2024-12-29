@@ -5,7 +5,7 @@ image_name="airfare-fe"
 
 # Build the Docker image
 #docker build --platform="linux/amd64" -t $image_name .
-docker build --platform="linux/amd64" --build-arg REACT_APP_API_BASE_URL='https://ec2-13-51-234-10.eu-north-1.compute.amazonaws.com' -t $image_name .
+docker build --platform="linux/amd64" --build-arg REACT_APP_API_BASE_URL='https://farecompare.site:8081' -t $image_name .
 
 # Save the Docker image as a tar file
 docker save $image_name > $image_name.tar
