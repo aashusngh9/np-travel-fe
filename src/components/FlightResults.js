@@ -31,17 +31,13 @@ function FlightResults({ results }) {
                           : result.airline}
                       </h5>
                       <p className="mb-1">
-                        <span className="fw-bold">
-                          {result.origin_city}
-                        </span>{" "}
-                        to <span className="fw-bold">{result.destination_city}</span> -{" "}
+                        <span className="fw-bold">{result.origin_city}</span> to{" "}
+                        <span className="fw-bold">{result.destination_city}</span> -{" "}
                         {result.destination_country}
                       </p>
                     </div>
                     <div className="text-end">
-                      <h6 className="mb-0 fw-bold text-primary">
-                        Rs. {result.price}
-                      </h6>
+                      <h6 className="mb-0 fw-bold text-primary">Rs. {result.price}</h6>
                     </div>
                   </div>
                   <div className="d-flex justify-content-between align-items-center">
@@ -51,36 +47,64 @@ function FlightResults({ results }) {
                         {result.arrival_time}
                       </p>
                       <p className="mb-0 text-muted">
-                        {result.stops === 0
-                          ? "Non-stop"
-                          : `${result.stops} stops`}
+                        {result.stops === 0 ? "Non-stop" : `${result.stops} stops`}
                       </p>
                     </div>
                   </div>
                 </div>
-                 {result.link && (
-                        <a href={result.link} target="_blank" rel="noopener noreferrer" className="btn btn-link mt-2">
-                          Book Now
-                        </a>
-                      )}
+                {result.link && (
+                  <a
+                    href={result.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn btn-link mt-2"
+                  >
+                    Book Now
+                  </a>
+                )}
                 {expandedItems[result.id] && (
                   <div className="mt-3">
+                    {/* Group routes into Onward and Return */}
+                    <h5>Onward Flights</h5>
                     <ul className="list-group list-group-flush">
-                      {result.routes.map((route) => (
-                        <li
-                          key={route.id}
-                          className="list-group-item d-flex justify-content-between align-items-center"
-                        >
-                          <div>
-                            <b>{route.cityFrom}</b>
-                            {"->"}
-                            <b>{route.cityTo}</b> - {route.airline}
-                          </div>
-                          <div className="text-muted">
-                            ( {route.local_departure}, {route.local_arrival})
-                          </div>
-                        </li>
-                      ))}
+                      {result.routes
+                        .filter((route) => route.isReturn === 0)
+                        .map((route) => (
+                          <li
+                            key={route.id}
+                            className="list-group-item d-flex justify-content-between align-items-center"
+                          >
+                            <div>
+                              <b>{route.cityFrom}</b>{" -> "}
+                              <b>{route.cityTo}</b> - {route.airline}
+                            </div>
+                            <div className="text-muted">
+                              ({route.local_departure_date} | {route.local_departure} -{" "}
+                              {route.local_arrival})
+                            </div>
+                          </li>
+                        ))}
+                    </ul>
+
+                    <h5 className="mt-3">Return Flights</h5>
+                    <ul className="list-group list-group-flush">
+                      {result.routes
+                        .filter((route) => route.isReturn === 1)
+                        .map((route) => (
+                          <li
+                            key={route.id}
+                            className="list-group-item d-flex justify-content-between align-items-center"
+                          >
+                            <div>
+                              <b>{route.cityFrom}</b>{" -> "}
+                              <b>{route.cityTo}</b> - {route.airline}
+                            </div>
+                            <div className="text-muted">
+                              ({route.local_departure_date} | {route.local_departure} -{" "}
+                              {route.local_arrival})
+                            </div>
+                          </li>
+                        ))}
                     </ul>
                   </div>
                 )}
