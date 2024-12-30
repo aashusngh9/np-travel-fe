@@ -7,7 +7,7 @@ import "./SearchForm.css"; // Import the CSS file for styling
 import moment from "moment"; // Import moment for date manipulation
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
-const API_URL = `${API_BASE_URL}/countries/autosuggest`;
+const API_URL = `${API_BASE_URL}/autosuggest`;
 const ORIGINS_API_URL = `${API_BASE_URL}/airports/autosuggest`;
 
 function SearchForm({ onSearch }) {
@@ -48,7 +48,7 @@ const [maxStops, setMaxStops] = useState(0); // New state for max stops
   const fetchOriginSuggestions = useCallback(
     debounce(async (query) => {
       try {
-        const response = await fetch(`${ORIGINS_API_URL}?airport_name=${query}`);
+        const response = await fetch(`${API_URL}?search_text=${query}`);
         if (!response.ok) {
           throw new Error("Failed to fetch origin suggestions");
         }
@@ -66,7 +66,7 @@ const [maxStops, setMaxStops] = useState(0); // New state for max stops
   const fetchSuggestions = useCallback(
     debounce(async (query) => {
       try {
-        const response = await fetch(`${API_URL}?country_name=${query}`);
+        const response = await fetch(`${API_URL}?search_text=${query}`);
         if (!response.ok) {
           throw new Error("Failed to fetch suggestions");
         }
@@ -122,7 +122,7 @@ const [maxStops, setMaxStops] = useState(0); // New state for max stops
 
   // Add destination to the list
   const handleAddDestination = (event, { suggestion }) => {
-    const destinationCode = suggestion.code;
+    const destinationCode = suggestion.iata;
     if (!destinations.includes(destinationCode)) {
       setDestinations([...destinations, destinationCode]);
     }
@@ -202,8 +202,8 @@ const [maxStops, setMaxStops] = useState(0); // New state for max stops
             suggestions={suggestions}
             onSuggestionsFetchRequested={handleSuggestionsFetchRequested}
             onSuggestionsClearRequested={() => setSuggestions([])}
-            getSuggestionValue={(suggestion) => suggestion.name}
-            renderSuggestion={(suggestion) => <div>{suggestion.name}</div>}
+            getSuggestionValue={(suggestion) => suggestion.iata}
+            renderSuggestion={(suggestion) => <div>{suggestion.dropdown}</div>}
             inputProps={{
               placeholder: "Type a destination",
               value: destinationInput,
