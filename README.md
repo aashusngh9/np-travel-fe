@@ -1,70 +1,200 @@
-# Getting Started with Create React App
+# Airfare App
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A React-based flight fare comparison SPA that lets users search for flights across multiple origins and destinations, with autocomplete, date picking, stop filtering, and direct booking links.
 
-## Available Scripts
+---
 
-In the project directory, you can run:
+## Table of Contents
 
-### `npm start`
+- [Tech Stack](#tech-stack)
+- [Prerequisites](#prerequisites)
+- [Environment Variables](#environment-variables)
+- [Local Development](#local-development)
+- [Production Build](#production-build)
+- [Docker Build & Run](#docker-build--run)
+- [Deploying to EC2](#deploying-to-ec2)
+- [Project Structure](#project-structure)
+- [API Endpoints](#api-endpoints)
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+---
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## Tech Stack
 
-### `npm test`
+| Layer | Technology |
+|---|---|
+| UI | React 18, Bootstrap 5, Tailwind CSS |
+| Autocomplete | react-autosuggest |
+| Date picking | react-datepicker + Moment.js |
+| Build tool | Create React App (react-scripts 5) |
+| Web server | NGINX (Alpine) with SSL termination |
+| Container | Docker (multi-stage build) |
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+---
 
-### `npm run build`
+## Prerequisites
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+- **Node.js** 18+ (the Docker image uses `node:18-alpine`)
+- **npm** 9+ (bundled with Node 18)
+- **Docker** — for containerised builds and deployment
+- **Access to the backend API** — set via `REACT_APP_API_BASE_URL`
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+To check your installed versions:
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+```bash
+node -v && npm -v && docker -v
+```
 
-### `npm run eject`
+---
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+## Environment Variables
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+| Variable | Description | Example |
+|---|---|---|
+| `REACT_APP_API_BASE_URL` | Base URL of the backend API | `https://farecompare.site:8081` |
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+For local development, create a `.env.local` file in the project root (this file is git-ignored):
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+```
+REACT_APP_API_BASE_URL=https://farecompare.site:8081
+```
 
-## Learn More
+> **Note:** Variables must be prefixed with `REACT_APP_` to be exposed to the React build. The app reads `process.env.REACT_APP_API_BASE_URL` at runtime in `src/App.js` and `src/components/SearchForm.js`.
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+---
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+## Local Development
 
-### Code Splitting
+```bash
+npm install
+npm start
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+The dev server starts on [http://localhost:3000](http://localhost:3000) with hot reloading.
 
-### Analyzing the Bundle Size
+> The `start` script sets `NODE_OPTIONS=--openssl-legacy-provider` for compatibility with react-scripts 5 on newer Node versions.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+To run tests:
 
-### Making a Progressive Web App
+```bash
+npm test
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+---
 
-### Advanced Configuration
+## Production Build
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+```bash
+npm run build
+```
 
-### Deployment
+This creates an optimised static bundle in the `build/` directory. The output is suitable for serving from any static file host or NGINX.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+The `build` script also sets `NODE_OPTIONS=--openssl-legacy-provider`.
 
-### `npm run build` fails to minify
+---
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+## Docker Build & Run
+
+The `Dockerfile` uses a two-stage build:
+
+1. **Stage 1 (builder)** — installs dependencies and compiles the React app using `node:18-alpine`.
+2. **Stage 2 (runtime)** — copies the compiled output into an `nginx:alpine` image that serves the SPA on ports 80 (HTTP → HTTPS redirect) and 443 (HTTPS).
+
+### Build the image
+
+```bash
+docker build --build-arg REACT_APP_API_BASE_URL=https://farecompare.site:8081 -t airfare-fe .
+```
+
+### Run the container locally
+
+Provide a directory containing `fullchain.pem` and `privkey.pem` (self-signed is fine for local testing):
+
+```bash
+docker run -p 80:80 -p 443:443 -v $(pwd)/certs:/etc/nginx/ssl:ro airfare-fe
+```
+
+---
+
+## Deploying to EC2
+
+The workflow is split: build on your Mac, deploy on EC2.
+
+> For the full infrastructure setup (DNS, security groups, TLS, troubleshooting) see [docs/infrastructure.md](docs/infrastructure.md).
+
+### Step 1 — Set up Let's Encrypt on EC2 (one-time)
+
+After DNS is pointing to the server and port 80 is open:
+
+```bash
+bash ~/certbot-setup.sh you@example.com
+```
+
+Obtains a cert for `farecompare.site` and `www.farecompare.site`, wires up auto-renewal via a daily cron, and restarts the container.
+
+### Step 2 — Build and upload (run locally)
+
+```bash
+bash build.sh
+```
+
+Builds the image, SCPs the tar and `deploy.sh` to EC2, cleans up the local tar.
+
+### Step 3 — Load and run (on EC2)
+
+```bash
+bash ~/deploy.sh
+```
+
+Loads the image, stops the old container, starts a fresh one with certs mounted from `/etc/letsencrypt/live/farecompare.site`.
+
+---
+
+## Project Structure
+
+```
+airfare-app/
+├── public/              # Static HTML template and PWA assets
+├── src/
+│   ├── components/
+│   │   ├── SearchForm.js    # Flight search inputs (origins, destinations, dates, stops)
+│   │   ├── SearchForm.css   # Component styles
+│   │   └── FlightResults.js # Expandable result cards with booking links
+│   ├── App.js           # Root component; wires search → results
+│   ├── index.js         # React DOM mount point
+│   └── index.css        # Global base styles
+├── certs/               # SSL certificate files (git-ignored, required for Docker)
+├── Dockerfile           # Multi-stage build: Node builder + NGINX runtime
+├── nginx.conf           # NGINX config with HTTPS redirect and SPA fallback
+├── build.sh             # Local: build image, SCP tar + deploy.sh to EC2
+├── deploy.sh            # EC2: load image and restart container
+├── certbot-setup.sh     # EC2 one-time: install certbot, get cert, set up auto-renewal
+├── postcss.config.js    # Tailwind CSS + autoprefixer config
+└── package.json         # Scripts, dependencies, browser targets
+```
+
+---
+
+## API Endpoints
+
+The frontend calls the backend at `REACT_APP_API_BASE_URL`:
+
+| Method | Path | Purpose |
+|---|---|---|
+| `GET` | `/airports/autosuggest?search_text=<q>` | Origin airport suggestions |
+| `GET` | `/autosuggest?search_text=<q>` | Destination city/airport suggestions |
+| `POST` | `/search` | Submit search; returns array of flight results |
+
+Search request body:
+
+```json
+{
+  "origins": ["LHR", "LGW"],
+  "destinations": ["JFK"],
+  "dateFrom": "2026-06-01",
+  "dateTo": "2026-06-15",
+  "isReturnFlight": true,
+  "nights": 7,
+  "maxStops": 1
+}
+```

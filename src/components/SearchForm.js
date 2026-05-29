@@ -258,7 +258,7 @@ const [maxStops, setMaxStops] = useState(0); // New state for max stops
         type="number"
         id="maxStops"
         value={maxStops}
-        onChange={(e) => setMaxStops(parseInt(e.target.value, 10) || 3)}
+        onChange={(e) => setMaxStops(parseInt(e.target.value, 10) || 0)}
         className="form-control"
         placeholder="Enter maximum stops"
       />
@@ -271,6 +271,7 @@ const [maxStops, setMaxStops] = useState(0); // New state for max stops
           id="returnFlightToggle"
           checked={isReturnFlight}
           onChange={(e) => setIsReturnFlight(e.target.checked)}
+          style={{ backgroundColor: "#4e5d94" }}
         />
         <label className="form-check-label" htmlFor="returnFlightToggle">Return Flight</label>
       </div>
@@ -293,7 +294,12 @@ const [maxStops, setMaxStops] = useState(0); // New state for max stops
       {loading ? (
         <div className="loading-indicator">Loading...</div>
       ) : (
-        <button type="submit" className="btn btn-primary">Search Flights</button>
+        <button type="submit"
+                        className="btn"
+                        style={{
+                          backgroundColor: "#4e5d94",
+                          color: "white",
+                        }}>Search Flights</button>
       )}
     </form>
   );

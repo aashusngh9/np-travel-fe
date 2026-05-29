@@ -13,14 +13,12 @@ ENV REACT_APP_API_BASE_URL=$REACT_APP_API_BASE_URL
 
 RUN npm run build
 
-# Stage 2: NGINX Setup for SSL
+# Stage 2: NGINX runtime
+# Certs are NOT baked into the image — they are mounted at runtime from
+# /etc/letsencrypt on the host (managed by certbot).
 FROM nginx:alpine
 
-# Copy SSL certificates to the container
-COPY certs/fullchain.pem /etc/nginx/ssl/nap_trade.pem
-COPY certs/privkey.pem /etc/nginx/ssl/nap_trade_pvt.pem
-
-# Copy custom NGINX configuration for SSL
+# Copy custom NGINX configuration
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 # Copy build output from the previous stage

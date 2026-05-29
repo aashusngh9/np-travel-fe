@@ -1,18 +1,22 @@
 #!/bin/bash
+set -e
 
-# Set the image name
 image_name="airfare-fe"
+ec2_host="ec2-user@ec2-13-62-28-33.eu-north-1.compute.amazonaws.com"
+ssh_key="/Users/singhas/projects/personal/aws/default.pem"
 
-# Build the Docker image
-#docker build --platform="linux/amd64" -t $image_name .
+echo "==> Building Docker image..."
 docker build --platform="linux/amd64" --build-arg REACT_APP_API_BASE_URL='https://farecompare.site:8081' -t $image_name .
 
-# Save the Docker image as a tar file
+echo "==> Saving image to tar..."
 docker save $image_name > $image_name.tar
 
-# Upload the tar file to the server using scp
-#scp -i /Users/singhas/p-projects/first-key-pair.pem $image_name.tar ubuntu@ec15-51-20-94-47.eu-north-1.compute.amazonaws.com:~
-scp -i "/Users/singhas/p-projects/first-key-pair.pem" $image_name.tar ubuntu@ec2-13-49-245-200.eu-north-1.compute.amazonaws.com:~
+echo "==> Copying tar to EC2..."
+scp -i "$ssh_key" $image_name.tar $ec2_host:~
 
-# Clean up the tar file (optional)
-#rm $image_name.tar
+echo "==> Copying deploy script to EC2..."
+scp -i "$ssh_key" deploy.sh $ec2_host:~/deploy.sh
+
+echo "==> Done. SSH into EC2 and run: bash ~/deploy.sh"
+
+rm -f $image_name.tar
