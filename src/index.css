@@ -1,17 +1,428 @@
+/* ── Design tokens ────────────────────────────────────────── */
+:root {
+  --fc-bg:           #06091a;
+  --fc-surface:      #0d1530;
+  --fc-glass-bg:     rgba(9, 14, 36, 0.76);
+  --fc-glass-border: rgba(99, 149, 255, 0.14);
+  --fc-blue:         #3b82f6;
+  --fc-blue-dim:     #2563eb;
+  --fc-blue-bright:  #60a5fa;
+  --fc-indigo:       #818cf8;
+  --fc-amber:        #f59e0b;
+  --fc-green:        #10b981;
+  --fc-text:         #f1f5f9;
+  --fc-text-2:       #94a3b8;
+  --fc-text-3:       #475569;
+  --fc-card-bg:      #ffffff;
+  --fc-card-border:  #e8edf5;
+  --fc-card-shadow:  0 2px 16px rgba(0,0,0,0.07), 0 1px 3px rgba(0,0,0,0.04);
+  --fc-card-hover:   0 8px 40px rgba(0,0,0,0.13), 0 2px 8px rgba(0,0,0,0.06);
+  --fc-font-head:    'Syne', sans-serif;
+  --fc-font-body:    'DM Sans', sans-serif;
+  --fc-font-mono:    'JetBrains Mono', monospace;
+}
+
+/* ── Reset ────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
 body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+  font-family: var(--fc-font-body);
+  background: var(--fc-bg);
+  color: var(--fc-text);
+  min-height: 100vh;
+  overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+button { font-family: var(--fc-font-body); touch-action: manipulation; }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+/* ── Navigation ──────────────────────────────────────────── */
+.fc-nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+  padding: 18px 48px;
+  display: flex; align-items: center; justify-content: space-between;
+  background: linear-gradient(to bottom, rgba(6,9,26,0.9) 0%, transparent 100%);
 }
 
-button {
-  touch-action: manipulation;
+.fc-nav-brand {
+  display: flex; align-items: center; gap: 10px;
+  text-decoration: none; color: var(--fc-text);
+}
+
+.fc-nav-mark {
+  width: 38px; height: 38px;
+  background: linear-gradient(135deg, var(--fc-blue-dim), var(--fc-indigo));
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 19px; line-height: 1;
+}
+
+.fc-nav-name {
+  font-family: var(--fc-font-head);
+  font-size: 17px; font-weight: 700;
+  letter-spacing: -0.3px;
+}
+.fc-nav-name span { color: var(--fc-blue-bright); }
+
+/* ── Hero ─────────────────────────────────────────────────── */
+.fc-hero {
+  position: relative;
+  min-height: 100vh;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 100px 24px 72px;
+  overflow: hidden;
+}
+
+.fc-hero::before {
+  content: '';
+  position: absolute; inset: 0;
+  background-image:
+    radial-gradient(1px 1px at 12%  8%,  rgba(255,255,255,0.50) 0%, transparent 100%),
+    radial-gradient(1px 1px at 82% 14%,  rgba(255,255,255,0.38) 0%, transparent 100%),
+    radial-gradient(1px 1px at 35% 22%,  rgba(255,255,255,0.28) 0%, transparent 100%),
+    radial-gradient(1px 1px at 67% 38%,  rgba(255,255,255,0.42) 0%, transparent 100%),
+    radial-gradient(1px 1px at  8% 48%,  rgba(255,255,255,0.22) 0%, transparent 100%),
+    radial-gradient(2px 2px at 92% 55%,  rgba(255,255,255,0.15) 0%, transparent 100%),
+    radial-gradient(1px 1px at 48%  5%,  rgba(255,255,255,0.48) 0%, transparent 100%),
+    radial-gradient(1px 1px at 23% 75%,  rgba(255,255,255,0.18) 0%, transparent 100%),
+    radial-gradient(1px 1px at 74% 68%,  rgba(255,255,255,0.28) 0%, transparent 100%),
+    radial-gradient(1px 1px at 58% 88%,  rgba(255,255,255,0.20) 0%, transparent 100%),
+    radial-gradient(1px 1px at  3% 90%,  rgba(255,255,255,0.25) 0%, transparent 100%),
+    radial-gradient(1px 1px at 88% 82%,  rgba(255,255,255,0.16) 0%, transparent 100%),
+    radial-gradient(2px 2px at 41% 52%,  rgba(255,255,255,0.10) 0%, transparent 100%),
+    radial-gradient(1px 1px at 19% 35%,  rgba(255,255,255,0.32) 0%, transparent 100%),
+    radial-gradient(1px 1px at 77% 28%,  rgba(255,255,255,0.26) 0%, transparent 100%);
+  pointer-events: none;
+}
+
+.fc-aurora { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+
+.fc-ab {
+  position: absolute; border-radius: 50%;
+  filter: blur(90px);
+  animation: fc-drift 22s ease-in-out infinite;
+}
+.fc-ab-1 {
+  width: 700px; height: 700px;
+  background: radial-gradient(circle, rgba(29,78,216,0.45), transparent 65%);
+  top: -220px; left: -140px;
+}
+.fc-ab-2 {
+  width: 520px; height: 520px;
+  background: radial-gradient(circle, rgba(79,70,229,0.32), transparent 65%);
+  top: 15%; right: -120px;
+  animation-delay: -8s;
+}
+.fc-ab-3 {
+  width: 420px; height: 420px;
+  background: radial-gradient(circle, rgba(3,105,161,0.26), transparent 65%);
+  bottom: 0; left: 28%;
+  animation-delay: -16s;
+}
+
+@keyframes fc-drift {
+  0%,100% { transform: translate(0,0) scale(1); }
+  33%      { transform: translate(28px,-22px) scale(1.06); }
+  66%      { transform: translate(-18px,26px) scale(0.94); }
+}
+
+.fc-hero-inner {
+  position: relative; z-index: 10;
+  width: 100%; max-width: 1160px;
+  display: flex; flex-direction: column; align-items: center; gap: 44px;
+  animation: fc-fadeup 0.7s ease both;
+}
+
+@keyframes fc-fadeup {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.fc-hero-text { text-align: center; }
+
+.fc-hero-pill {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: rgba(59,130,246,0.10);
+  border: 1px solid rgba(59,130,246,0.20);
+  color: var(--fc-blue-bright);
+  font-size: 11px; font-weight: 700;
+  letter-spacing: 0.09em; text-transform: uppercase;
+  padding: 5px 14px; border-radius: 100px;
+  margin-bottom: 26px;
+}
+
+.fc-pill-dot {
+  width: 6px; height: 6px;
+  background: var(--fc-blue); border-radius: 50%;
+  animation: fc-blink 2.2s ease-in-out infinite;
+}
+
+@keyframes fc-blink {
+  0%,100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.4; transform: scale(0.75); }
+}
+
+.fc-hero-title {
+  font-family: var(--fc-font-head);
+  font-size: clamp(42px, 6vw, 76px);
+  font-weight: 800;
+  line-height: 1.04;
+  letter-spacing: -0.035em;
+  color: var(--fc-text);
+  margin-bottom: 18px;
+}
+
+.fc-italic {
+  font-family: 'DM Sans', sans-serif;
+  font-style: italic;
+  font-weight: 300;
+  background: linear-gradient(120deg, #60a5fa 0%, #818cf8 50%, #38bdf8 100%);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.fc-hero-sub {
+  font-size: 16px; color: var(--fc-text-2); font-weight: 400;
+}
+
+/* ── Stats strip ─────────────────────────────────────────── */
+.fc-stats {
+  display: flex; align-items: center; gap: 40px;
+}
+.fc-stat { text-align: center; }
+.fc-stat-n {
+  font-family: var(--fc-font-mono);
+  font-size: 18px; font-weight: 700; color: var(--fc-text);
+}
+.fc-stat-l { font-size: 11px; color: var(--fc-text-3); margin-top: 2px; }
+.fc-stat-div { width: 1px; height: 32px; background: rgba(255,255,255,0.08); }
+
+/* ── Results section ─────────────────────────────────────── */
+.fc-results-section { padding-bottom: 80px; }
+.fc-results-wrap { max-width: 1160px; margin: 0 auto; padding: 40px 24px 0; }
+
+.fc-results-hd {
+  display: flex; align-items: flex-start;
+  justify-content: space-between; gap: 16px;
+  flex-wrap: wrap; margin-bottom: 24px;
+}
+.fc-results-title {
+  font-family: var(--fc-font-head);
+  font-size: 21px; font-weight: 700; color: var(--fc-text);
+}
+.fc-results-sub { font-size: 13px; color: var(--fc-text-2); margin-top: 3px; }
+
+/* ── Flight cards ────────────────────────────────────────── */
+.fc-results-list { display: flex; flex-direction: column; gap: 10px; }
+
+.fc-card {
+  background: var(--fc-card-bg);
+  border: 1px solid var(--fc-card-border);
+  border-radius: 16px; overflow: hidden;
+  box-shadow: var(--fc-card-shadow);
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+.fc-card:hover { box-shadow: var(--fc-card-hover); transform: translateY(-1px); }
+
+.fc-card--main {
+  display: grid;
+  grid-template-columns: 152px 1fr 210px 36px;
+  align-items: center; gap: 20px;
+  padding: 22px 24px; cursor: pointer;
+}
+
+.fc-airline-col { display: flex; flex-direction: column; gap: 8px; }
+
+.fc-airline-badge {
+  width: 44px; height: 44px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--fc-font-mono); font-size: 13px; font-weight: 700;
+  color: #fff; letter-spacing: 0.04em; flex-shrink: 0;
+}
+
+.fc-airline-nm { font-size: 13px; font-weight: 600; color: #1e293b; line-height: 1.3; }
+
+.fc-route-tl { display: flex; align-items: center; gap: 14px; }
+
+.fc-tl-end { display: flex; flex-direction: column; gap: 2px; }
+.fc-tl-end--right { text-align: right; }
+
+.fc-tl-time {
+  font-family: var(--fc-font-mono);
+  font-size: 22px; font-weight: 600;
+  color: #0f172a; letter-spacing: -0.04em; line-height: 1; white-space: nowrap;
+}
+
+.fc-tl-city { font-size: 12px; color: #64748b; white-space: nowrap; }
+
+.fc-tl-connector {
+  flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px;
+}
+
+.fc-tl-track { width: 100%; height: 2px; background: #e2e8f0; position: relative; }
+
+.fc-tl-track::before, .fc-tl-track::after {
+  content: ''; position: absolute;
+  top: 50%; transform: translateY(-50%);
+  width: 7px; height: 7px;
+  border: 1.5px solid #94a3b8; border-radius: 50%; background: #fff;
+}
+.fc-tl-track::before { left: -3px; }
+.fc-tl-track::after  { right: -3px; }
+
+.fc-tl-plane {
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 13px; color: var(--fc-blue); line-height: 1;
+}
+
+.fc-stop-dot {
+  position: absolute; top: 50%; transform: translateY(-50%);
+  width: 7px; height: 7px;
+  border: 2px solid var(--fc-amber); background: #fff; border-radius: 50%;
+}
+
+.fc-tl-dur { font-size: 11px; color: #64748b; font-weight: 500; white-space: nowrap; }
+
+.fc-stop-pill {
+  display: inline-block; padding: 2px 9px; border-radius: 100px;
+  font-size: 10px; font-weight: 700; letter-spacing: 0.02em;
+  background: #fef3c7; color: #b45309; white-space: nowrap;
+}
+.fc-stop-pill--direct { background: #d1fae5; color: #065f46; }
+
+.fc-price-col { display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
+
+.fc-price-num {
+  font-family: var(--fc-font-mono);
+  font-size: 25px; font-weight: 700;
+  color: #0f172a; letter-spacing: -0.04em; line-height: 1; white-space: nowrap;
+}
+.fc-price-cur { color: var(--fc-amber); font-size: 16px; }
+.fc-price-pp { font-size: 11px; color: #94a3b8; margin-top: -7px; text-align: right; }
+
+.fc-book-btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: linear-gradient(135deg, var(--fc-blue-dim), var(--fc-blue));
+  color: #fff; text-decoration: none;
+  font-size: 13px; font-weight: 700;
+  padding: 9px 18px; border-radius: 9px;
+  box-shadow: 0 2px 10px rgba(37,99,235,0.28);
+  transition: all 0.18s; white-space: nowrap;
+}
+.fc-book-btn:hover { transform: translateY(-1px); box-shadow: 0 5px 18px rgba(37,99,235,0.40); }
+
+.fc-expand-col { display: flex; align-items: center; justify-content: center; }
+
+.fc-expand-chevron {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: #f1f5f9; border: 1px solid #e2e8f0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; color: #64748b;
+  transition: all 0.22s; cursor: pointer; flex-shrink: 0;
+}
+.fc-card--open .fc-expand-chevron {
+  background: #dbeafe; border-color: #bfdbfe; color: var(--fc-blue); transform: rotate(180deg);
+}
+
+.fc-card-details {
+  border-top: 1px solid #f1f5f9;
+  background: #fafbff;
+  padding: 22px 24px;
+  animation: fc-slidein 0.22s ease;
+}
+
+@keyframes fc-slidein {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.fc-leg-block { margin-bottom: 20px; }
+.fc-leg-block:last-child { margin-bottom: 0; }
+
+.fc-leg-hd {
+  display: flex; align-items: center; gap: 7px;
+  font-size: 11px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.07em;
+  padding-bottom: 10px; margin-bottom: 2px;
+  border-bottom: 1px solid #e8edf5;
+}
+.fc-leg-hd--out { color: #2563eb; }
+.fc-leg-hd--ret { color: #d97706; }
+
+.fc-leg-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.fc-leg-hd--out .fc-leg-dot { background: #2563eb; }
+.fc-leg-hd--ret .fc-leg-dot { background: #d97706; }
+
+.fc-leg-item {
+  display: grid; grid-template-columns: 1fr auto;
+  align-items: center; gap: 20px;
+  padding: 10px 0; border-bottom: 1px solid #f1f5f9;
+}
+.fc-leg-item:last-child { border-bottom: none; }
+
+.fc-leg-info { display: flex; flex-direction: column; gap: 2px; }
+.fc-leg-cities { font-size: 14px; font-weight: 600; color: #1e293b; }
+.fc-leg-airline { font-size: 12px; color: #64748b; }
+
+.fc-leg-times {
+  font-family: var(--fc-font-mono);
+  font-size: 13px; font-weight: 600; color: #334155; white-space: nowrap;
+}
+
+/* ── Skeleton ────────────────────────────────────────────── */
+.fc-skel-list { display: flex; flex-direction: column; gap: 10px; }
+
+.fc-skel-card {
+  background: #fff; border-radius: 16px;
+  border: 1px solid var(--fc-card-border);
+  padding: 22px 24px;
+  display: grid; grid-template-columns: 152px 1fr 210px;
+  gap: 20px; align-items: center;
+}
+
+.fc-sk {
+  border-radius: 6px;
+  background: linear-gradient(90deg, #f1f5f9 25%, #e8edf5 50%, #f1f5f9 75%);
+  background-size: 300% 100%;
+  animation: fc-shimmer 1.7s ease-in-out infinite;
+}
+.fc-sk--circle { border-radius: 10px; }
+
+@keyframes fc-shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ── Empty state ─────────────────────────────────────────── */
+.fc-empty {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 80px 24px; gap: 14px; text-align: center;
+}
+.fc-empty-icon { opacity: 0.16; }
+.fc-empty-title {
+  font-family: var(--fc-font-head);
+  font-size: 17px; font-weight: 700; color: var(--fc-text-2);
+}
+.fc-empty-body { font-size: 14px; color: var(--fc-text-3); max-width: 280px; line-height: 1.6; }
+
+/* ── Responsive ──────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .fc-card--main { grid-template-columns: 120px 1fr auto 32px; gap: 14px; padding: 18px; }
+  .fc-skel-card { grid-template-columns: 120px 1fr; }
+}
+
+@media (max-width: 640px) {
+  .fc-nav { padding: 14px 20px; }
+  .fc-hero { padding: 80px 16px 44px; }
+  .fc-stats { gap: 20px; flex-wrap: wrap; justify-content: center; }
+  .fc-stat-div { display: none; }
+  .fc-card--main { grid-template-columns: 1fr auto; grid-template-rows: auto auto; }
+  .fc-airline-col { flex-direction: row; align-items: center; gap: 10px; grid-column: 1; }
+  .fc-route-tl { grid-column: 1 / -1; }
+  .fc-price-col { align-items: flex-start; }
+  .fc-expand-col { grid-row: 1; grid-column: 2; align-self: start; }
+  .fc-skel-card { grid-template-columns: 1fr; }
 }
