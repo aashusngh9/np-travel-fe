@@ -300,7 +300,7 @@ button { font-family: var(--fc-font-body); touch-action: manipulation; }
   color: #0f172a; letter-spacing: -0.04em; line-height: 1; white-space: nowrap;
 }
 .fc-price-cur { color: var(--fc-amber); font-size: 16px; }
-.fc-price-pp { font-size: 11px; color: #94a3b8; margin-top: -7px; text-align: right; }
+.fc-price-pp { font-size: 11px; color: #94a3b8; margin-top: 2px; text-align: right; }
 
 .fc-book-btn {
   display: inline-flex; align-items: center; gap: 5px;

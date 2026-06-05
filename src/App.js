@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import SearchForm from './components/SearchForm';
 import FlightResults from './components/FlightResults';
 
@@ -8,6 +8,15 @@ function App() {
   const [flightData, setFlightData] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
+  const resultsRef = useRef(null);
+
+  useEffect(() => {
+    if (hasSearched && resultsRef.current) {
+      setTimeout(() => {
+        resultsRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 80);
+    }
+  }, [hasSearched]);
 
   const handleSearch = async (searchParams) => {
     setIsLoading(true);
@@ -86,7 +95,7 @@ function App() {
       </section>
 
       {(hasSearched || isLoading) && (
-        <section className="fc-results-section">
+        <section ref={resultsRef} className="fc-results-section">
           <div className="fc-results-wrap">
             <FlightResults
               results={flightData}
